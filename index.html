@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Dự án ESP32 của tôi: xem hướng dẫn và nạp firmware trực tiếp từ trình duyệt.">
+<title>Glow Lab · Dự án ESP32</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+
+<style>
+:root{
+  --bg:#eef1f6;--grid:rgba(20,33,61,.055);--card:#fbfcfe;--ink:#14213d;--muted:#5b6785;--line:rgba(20,33,61,.12);
+  --accent:#ff5a1f;--a-green:#12805c;--a-blue:#2457d6;--a-violet:#7c3aed;
+  --shadow:0 1px 0 rgba(20,33,61,.04),0 14px 34px -16px rgba(20,33,61,.28);
+  --radius:22px;--mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;--sans:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+:root[data-theme="dark"]{
+  --bg:#0e1424;--grid:rgba(255,255,255,.045);--card:#161e33;--ink:#eef2ff;--muted:#9aa6c7;--line:rgba(255,255,255,.12);
+  --accent:#ff7a45;--a-green:#3ed1a0;--a-blue:#7ea2ff;--a-violet:#b69bff;
+  --shadow:0 1px 0 rgba(255,255,255,.04),0 14px 34px -16px rgba(0,0,0,.7);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1424;--grid:rgba(255,255,255,.045);--card:#161e33;--ink:#eef2ff;--muted:#9aa6c7;
+    --line:rgba(255,255,255,.12);--accent:#ff7a45;--a-green:#3ed1a0;--a-blue:#7ea2ff;--a-violet:#b69bff;
+    --shadow:0 1px 0 rgba(255,255,255,.04),0 14px 34px -16px rgba(0,0,0,.7);
+  }
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:var(--sans);color:var(--ink);background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.mono{font-family:var(--mono)}
+a{color:inherit}
+
+header.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:14px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo{width:42px;height:42px;border-radius:12px;background:var(--ink);display:grid;place-items:center}
+.logo svg{width:24px;height:24px}
+.brand small{display:block;font:500 .66rem var(--mono);letter-spacing:.18em;color:var(--muted)}
+.brand b{font-size:1.15rem;font-weight:900;letter-spacing:-.01em}
+.brand b span{color:var(--accent)}
+.status{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font:500 .78rem var(--mono)}
+.status i{width:9px;height:9px;border-radius:50%;background:#3ed1a0;box-shadow:0 0 0 4px rgba(62,209,160,.25);animation:pulse 2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px rgba(62,209,160,0)}}
+nav.pill{display:flex;gap:4px;padding:5px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+nav.pill a{text-decoration:none;font-weight:700;font-size:.86rem;padding:8px 16px;border-radius:999px;color:var(--muted);transition:.2s}
+nav.pill a:hover{color:var(--ink)}
+nav.pill a.on{background:var(--ink);color:var(--bg)}
+.theme{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font-size:1.05rem;box-shadow:var(--shadow)}
+
+.hero{position:relative;padding:56px 0 28px}
+.eyebrow{font:500 .76rem var(--mono);letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+h1.title{margin:8px 0 6px;font-weight:900;line-height:.9;letter-spacing:-.04em;font-size:clamp(3.6rem,11vw,7.6rem)}
+h1.title .o{color:var(--accent);display:block}
+.verbs{font:700 .95rem var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--a-green);margin:14px 0 0}
+.verbs em{font-style:normal;color:var(--accent);padding:0 .5em}
+.hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:22px;margin-top:34px;align-items:start}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr}}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+.flash{border-top:6px solid var(--a-green)}
+.flash .kicker{font:700 .74rem var(--mono);letter-spacing:.2em;color:var(--muted)}
+.flash h2{margin:6px 0 4px;font-size:1.7rem;line-height:1.15;font-weight:900}
+.flash p{margin:0 0 16px;color:var(--muted);font-size:.95rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{font:500 .74rem var(--mono);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:color-mix(in srgb,var(--a-green) 10%,transparent);color:var(--a-green)}
+esp-web-install-button button{all:unset;box-sizing:border-box;cursor:pointer;width:100%;text-align:center;background:var(--ink);color:var(--bg);font:700 1rem var(--sans);padding:16px 22px;border-radius:999px;transition:.2s}
+esp-web-install-button button:hover{transform:translateY(-2px);background:var(--accent);color:#fff}
+
+/* CSS MÀN HÌNH KHÓA ĐĂNG NHẬP */
+.auth-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(14,20,36,0.96);backdrop-filter:blur(12px);
+  z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.auth-card{
+  background:var(--card);border:1px solid var(--line);border-radius:24px;
+  padding:32px;max-width:400px;width:100%;text-align:center;box-shadow:var(--shadow);
+}
+.auth-card h3{margin:0 0 8px;font-size:1.5rem;font-weight:900;color:var(--ink)}
+.auth-card p{color:var(--muted);font-size:0.9rem;margin-bottom:24px}
+.auth-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:14px 16px;border-radius:999px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);font-weight:700;cursor:pointer;margin-bottom:10px;transition:0.2s;
+}
+.auth-btn:hover{background:var(--accent);color:#fff}
+</style>
+</head>
+<body>
+
+<!-- MÀN HÌNH KHÓA CHẶN TRUY CẬP -->
+<div id="auth-overlay" class="auth-overlay">
+  <div class="auth-card">
+    <h3>⚡ Glow Lab Auth</h3>
+    <p>Vui lòng đăng nhập tài khoản được cấp quyền để nạp firmware ESP32.</p>
+    <button class="auth-btn" onclick="loginGoogle()">Đăng nhập bằng Google</button>
+    <button class="auth-btn" onclick="loginGithub()">Đăng nhập bằng GitHub</button>
+    <div id="auth-error" style="color:var(--accent);font-size:0.85rem;margin-top:12px;font-weight:bold;"></div>
+  </div>
+</div>
+
+<!-- GIAO DIỆN TRANG WEB CHÍNH -->
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ff7a45" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/><circle cx="12" cy="12" r="1.6" fill="#ff7a45"/></svg>
+      </div>
+      <div><small>ESP32 · DỰ ÁN CỦA TÔI</small><b>Glow <span>Lab</span></b></div>
+    </a>
+    <div class="status" id="status"><i></i><span>Chưa kết nối board</span></div>
+    <button class="theme" id="theme" aria-label="Đổi giao diện sáng/tối">◐</button>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+    <div class="hero">
+      <div class="eyebrow">ESP32 · Dự án mở · Nạp trực tiếp bằng trình duyệt</div>
+      <h1 class="title">GLOW<span class="o">LAB</span></h1>
+      <p class="verbs">Đấu dây <em>·</em> Nạp code <em>·</em> Xem thử</p>
+
+      <div class="hero-grid">
+        <div class="card flash">
+          <div class="kicker">BẮT ĐẦU TẠI ĐÂY</div>
+          <h2>Cắm cáp USB,<br>nạp firmware</h2>
+          <p>Chọn cổng COM của board để tiến hành nạp code trực tiếp.</p>
+          <div class="chips"><span class="chip">ESP32</span><span class="chip">v1.0.0</span><span class="chip">Chrome / Edge</span></div>
+
+          <esp-web-install-button manifest="manifest.json">
+            <button slot="activate">⚡ Kết nối &amp; nạp firmware</button>
+          </esp-web-install-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- SCRIPT FIREBASE XÁC THỰC -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  // 1. DÁN ĐOẠN FIREBASECONFIG BẠN LẤY Ở PHẦN 2 VÀO ĐÂY (Thay thế đoạn dưới này)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBSP9wDHY3X_K0RuYovJ3EkOYcKCcezggk",
+    authDomain: "glowlabauth.firebaseapp.com",
+    projectId: "glowlabauth",
+    storageBucket: "glowlabauth.firebasestorage.app",
+    messagingSenderId: "610434261115",
+    appId: "1:610434261115:web:a104347998f7ebd06582de"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // 2. NHẬP CHÍNH XÁC EMAIL CỦA BẠN VÀO MẢNG DƯỚI ĐÂY (Chỉ email này mới vào được web)
+  const ALLOWED_EMAILS = [
+    "phandennis1999@gmail.com"
+  ];
+
+  onAuthStateChanged(auth, (user) => {
+    const overlay = document.getElementById('auth-overlay');
+    const errDiv = document.getElementById('auth-error');
+
+    if (user) {
+      if (ALLOWED_EMAILS.includes(user.email)) {
+        overlay.style.display = 'none'; // Đúng email -> Mở khóa web
+      } else {
+        overlay.style.display = 'flex';
+        errDiv.textContent = `Tài khoản ${user.email} không được cấp quyền!`;
+      }
+    } else {
+      overlay.style.display = 'flex'; // Chưa đăng nhập -> Hiện màn hình khóa
+    }
+  });
+
+  window.loginGoogle = () => {
+    signInWithPopup(auth, new GoogleAuthProvider()).catch(err => {
+      document.getElementById('auth-error').textContent = err.message;
+    });
+  };
+
+  window.loginGithub = () => {
+    signInWithPopup(auth, new GithubAuthProvider()).catch(err => {
+      document.getElementById('auth-error').textContent = err.message;
+    });
+  };
+</script>
+
+<script>
+/* Theme Switcher */
+(function(){
+  const root=document.documentElement,btn=document.getElementById('theme');
+  btn.addEventListener('click',()=>{
+    const dark=root.dataset.theme==='dark';
+    root.dataset.theme=dark?'light':'dark';
+  });
+})();
+</script>
+</body>
+</html>
